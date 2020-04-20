@@ -1,0 +1,133 @@
+run-instances example from introduction
+
+aws ec2 run-instances --image-id ami-04681a1dbd79675a5 \
+        --count 1 \
+        --instance-type r5d.large \
+        --key-name newcluster \
+        --security-group-ids sg-007e43f80a1958f29 \
+        --subnet-id subnet-970ec2f0 \
+        --user-data file://my_script.sh \
+        --tag-specifications \
+        'ResourceType=instance,Tags=[{Key=backend,Value=inventory1}]'
+Lookup available EC2 instance types
+
+aws pricing get-attribute-values \
+     --service-code AmazonEC2 \
+     --attribute-name instanceType
+Using --output and --dry-run
+
+aws --output table ec2 describe-images \
+	--filters "Name=description,Values=*CentOS*" \
+	"Name=owner-alias,Values=amazon"
+
+aws ec2 run-instances --dry-run \
+	--image-id ami-04681a1dbd79675a5 \
+	--count 1 \
+	--instance-type r5d.large \
+	--key-name MyKeyPair \
+	--security-group-ids sg-007e43f80a1958f29 \
+	--subnet-id subnet-970ec2f0 \
+	--user-data file://my_script.sh \
+	--tag-specifications \
+	'ResourceType=instance,Tags=[{Key=backend,Value=inventory1}]' 
+s3api and bucket lifestyle configuration
+
+aws s3api get-bucket-lifecycle-configuration \
+   --bucket test4test4
+aws s3api put-bucket-lifecycle-configuration \
+   --bucket test4test4 \
+   --lifecycle-configuration '{
+    "Rules": [
+        {
+            "Filter": {
+                "Prefix": "scripts/"
+            },
+            "Status": "Enabled",
+            "Transitions": [
+                {
+                    "Days": 30,
+                    "StorageClass": "STANDARD_IA"
+                },
+                {
+                    "Days": 60,
+                    "StorageClass": "GLACIER"
+                }
+            ],
+            "Expiration": {
+                "Days": 365
+            },
+            "ID": "Lifecycle for bucket objects."
+        }
+    ]
+}'
+
+Creating users and groups
+
+aws iam create-user --user-name mike 
+aws iam get-user --user-name mike
+aws iam list-access-keys --user-name mike
+aws iam create-access-key --user-name mike
+
+aws iam create-group --group-name admins
+aws iam list-policies | grep AmazonEC2 | grep Access
+aws iam attach-group-policy \
+	--policy-arn arn:aws:iam::aws:policy/AmazonEC2FullAccess \
+	--group-name admins
+
+aws iam add-user-to-group \
+	--group-name admins \
+	--user-name mike
+Configure a static website in S3
+
+aws s3 mb s3://mysite548.com
+aws s3api put-bucket-acl --bucket mysite548.com --acl public-read
+aws s3 sync . s3://mysite548.com --acl public-read
+ls
+aws s3 website s3://mysite548.com/ --index-document index.html --error-document error.html
+aws s3api get-bucket-website --bucket mysite548.com
+
+http://mysite548.com.s3-website-us-east-1.amazonaws.com/
+Prepare for EC2 deployment
+
+aws ec2 create-security-group \
+	--group-name EC2SecurityGroup \
+	--description "Security Group for EC2 instances to allow ports 22, 80 and 443"
+aws ec2 authorize-security-group-ingress \
+	--group-name EC2SecurityGroup \
+	--protocol tcp \
+	--port 22 \
+	--cidr 172.54.125.8/32
+aws ec2 authorize-security-group-ingress \
+	--group-name EC2SecurityGroup \
+	--protocol tcp \
+	--port 80 \
+	--cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress \
+	--group-name EC2SecurityGroup \
+	--protocol tcp \
+	--port 443 \
+	--cidr 0.0.0.0/0
+aws ec2 describe-security-groups --group-names EC2SecurityGroup
+
+aws --output table ec2 describe-images \
+	--filters "Name=description,Values=*Amazon Linux 2*" \
+	"Name=owner-alias,Values=amazon"
+
+aws ec2 describe-subnets
+run-instances command
+
+aws ec2 run-instances --image-id ami-00b94673edfccb7ca --count 1 \
+	--instance-type t2.micro --key-name newcluster \
+	--security-group-ids sg-06366129d8a9b8a59*** \
+	--subnet-id subnet-52d6117c \
+	--user-data file://my_script.sh \
+	--tag-specifications \
+	'ResourceType=instance,Tags=[{Key=webserver,Value=production}]'
+Create RDS database instance command
+
+aws rds create-db-instance 
+	--db-instance-identifier sg-cli-test \
+	--allocated-storage 20 \
+	--db-instance-class db.m1.small --engine mysql \
+	--master-username myawsuser \
+	--master-user-password mypassword

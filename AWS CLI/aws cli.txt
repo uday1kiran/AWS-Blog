@@ -1,0 +1,128 @@
+amazon web services (aws) fundamentals for system administrators
+
+learn amazon web services in a month of lunches - David Clinton - Manning
+
+sudo apt install python-pip
+pip3 install awscli --upgrade --user
+--user :  per user installation
+
+reboot
+aws --version
+
+access keys
+---------
+account ink rught side top drop down --> my security credentials
+
+>aws configure
+prompts for access ket,secret key,default region(us-east-1),default output format(text/table/json)
+
+
+full list of ec2 instance types available:
+--------
+aws pricing get-attribute-values --service-code AmazonEC2 --attribute-name instanceType
+
+aws s3 ls
+
+multiple accounts:
+----
+throough profiles
+~/.aws/config,credentials
+
+aws configure --profile account2
+
+aws --profile account2 s3 ls
+
+aws cli syntax
+------------
+aws [options] <command> <subcommand> [parameters]
+
+#all amazon officially maintained centos images 
+aws --output table ec2 describe-images \
+ --filters "Name=description,Values=*CentOS*" \
+ "Name=owner-alias,Values=amazon"
+
+subcommand examples:
+describe
+run
+create
+delete
+enable
+disable
+modify
+request
+stop
+terminate
+
+options:
+--region
+--output
+--profile
+--dry-run
+
+top level "command" includes aws service,subcommands execute some action on a action/services resources,options control the command environment and parameters narrow down the scope of command.
+
+Finding help:
+---
+aws help
+hit q to exit help.
+aws s3 help
+aws s3 website help
+
+online documentsions: https://docs.aws.amazon.com/cli/latest/reference/index.html
+
+aws s3 ls
+awws s3api list-buckets --> same o/p but with different formatting
+
+pictures\Annotation 2020-04-20 150314.png
+
+aws s3 mb s3://test4test4 -->new bucket created
+aws s3 cp --recursive sales-docs/ s3: //test4test4
+aws s3 ls
+aws s3 ls test4/test4
+
+aws s3api get-bucket-lifecycle-configuration --bucket test4test4
+aws s3api put-bucket-lifecycle-configuration --bucket test4test4  --lifecycle-configuration ..<json data>..
+ 
+creating iam group to handle access to multiple users:
+------
+aws iam create-user --user-name mike
+aws iam get-user --user-name mike
+aws iam list-access-keys --user-name mike
+aws iam create-access-key --user-name mike [secret key generated and need to copy as we can't see later]
+aws iam create-group --group-name admins
+aws iam list-policies | grep AmazonEC2 | grep Access
+aws iam attach-group-policy \
+--policy-arm arn:aws:iam::aws:policy/AmazonEC2FullAccess \
+--group-name admins
+aws iam add-user-to-group \
+--group-name admins \
+--user-name mike
+
+aws s3 mb s3://mysite548.com
+aws s3api put-bucket-acl --bucket mysite548.com --acl public-read
+aws s3 sync . s3://mysite548.com --acl public-read
+aws s3 website s3://mysite548.com --index-document index.html --error-document error.html
+aws s3api get-bucket-website --bucket mysite548.com
+
+http://<bucketname>.s3-website-<region>.amazon.aws.com
+http://mysite548.com.s3-website-us-east-1.amazon.aws.com
+
+Demo:
+Annotation 2020-04-20 152122.png
+
+commands:
+Annotation 2020-04-20 152308.png
+Annotation 2020-04-20 152308-1.png
+
+ami required so filter it using below command.
+Annotation 2020-04-20 152539.png
+to get subnets:
+aws ec2 describe-subnets
+
+Annotation 2020-04-20 152539-1.png
+
+To include manage database-RDS:
+Annotation 2020-04-20 152539-2.png
+
+Reference: https://app.pluralsight.com/library/courses/automating-aws-operations-aws-cli
+https://bootstrap-it.com/awscli/
